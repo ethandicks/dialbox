@@ -189,7 +189,7 @@ if __name__ == "__main__":
         else:
             usage()
     else:
-        usage
+        usage()
 
     if fifo == None:
         print 'could not open device'
