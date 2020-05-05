@@ -171,7 +171,7 @@ class queue:
             return None
 
 def usage():
-    print 'usage: %s DEVICE (where EV_QUEUE is either /dev/input/event* for USB HID devices or /dev/ttyS* for serial line devices)' % (argv[0])
+    print 'usage: %s DEVICE (where EV_QUEUE is either /dev/input/event* for USB HID devices or /dev/ttyS* or /dev/ttyUSB* for serial line devices)' % (argv[0])
     exit()
 
 if __name__ == "__main__":
@@ -183,7 +183,7 @@ if __name__ == "__main__":
         if re.match('^/dev/input/event\d+$', argv[1]):
             print 'Initialized event queue: %s' % argv[1]
             fifo = queue(dev=argv[1])
-        elif re.match('^/dev/(ttyS\d+|cu\..*)$', argv[1]):
+        elif re.match('^/dev/(ttyS\d+|ttyUSB\d+|cu\..*)$', argv[1]):
             print 'Initialized serial line: %s' % argv[1]
             fifo = dialbox(dev=argv[1], model=SGI)
         else:
