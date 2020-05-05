@@ -44,7 +44,8 @@ class dialbox:
 		DEV = str(dev)
 
         # dialbox commands 
-        self.DIAL_INITIALIZE  = "%c%c%c%c" % (0x20, 0x50, 0x00, 0xFF)
+        self.DIAL_INITIALIZE  = "%c"     % (0x20)
+        self.DIAL_SET_AUTO    = "%c%c%c" % (0x50, 0xFF, 0xFF)
         self.DIAL_BASE         = 0x30
         self.DIAL_DELTA_BASE   = 0x40
 
@@ -64,9 +65,15 @@ class dialbox:
         self.dial = [0,0,0,0, 0,0,0,0]
         self.serial.flushInput()
         self.serial.flushOutput()
+        print 'sending init string'
         self.serial.write(self.DIAL_INITIALIZE)
-        sleep(timeout/1000) # check if can do without
-        self.read_bytes()
+        print 'init string sent'
+        sleep(timeout/500) # needed to let dial box complete self-test
+        status = self.read_bytes()
+        print 'dialbox returns 0x%02x' % ord(status)
+        print 'sending dial set-auto command'
+        self.serial.write(self.DIAL_SET_AUTO)
+        print 'dial set-auto command sent'
         print "eventio-info: dialbox: initialized."
 
     def __del__(self):
@@ -80,6 +87,7 @@ class dialbox:
         format = '@%dB' % n
         data = self.serial.read(n)
         #print struct.unpack(format,data[:n])
+        return data
 
     def waitevent(self):
         data = self.serial.read(3)
