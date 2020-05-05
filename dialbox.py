@@ -68,7 +68,7 @@ class dialbox:
         print 'sending init string'
         self.serial.write(self.DIAL_INITIALIZE)
         print 'init string sent'
-        sleep(timeout/500) # needed to let dial box complete self-test
+        sleep(timeout/1000) # needed to let dial box complete self-test
         status = self.read_bytes()
         print 'dialbox returns 0x%02x' % ord(status)
         print 'sending dial set-auto command'
