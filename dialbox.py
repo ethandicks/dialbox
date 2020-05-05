@@ -4,7 +4,6 @@ import select
 import os
 import fcntl
 import struct
-import exceptions
 from time import sleep
 
 
@@ -33,15 +32,15 @@ class dialbox:
         try:
             import serial
         except:
-            print 'eventio-error: dialbox driver needs the serial module (http://pyserial.sf.net)'
+            print ('eventio-error: dialbox driver needs the serial module (http://pyserial.sf.net)')
 
         if dev is None:
             return None
 
         try:
-		DEV = '/dev/ttyS%d' % int(dev)
+            DEV = '/dev/ttyS%d' % int(dev)
         except:
-		DEV = str(dev)
+            DEV = str(dev)
 
         # dialbox commands 
         self.DIAL_INITIALIZE  = "%c"     % (0x20)
@@ -52,29 +51,29 @@ class dialbox:
         try:
             self.serial = serial.Serial(DEV,9600, timeout=timeout/1000)
         except serial.SerialException:
-            print 'eventio-error: Unable to find dialbox. Is it connected? To the right port?'
+            print ('eventio-error: Unable to find dialbox. Is it connected? To the right port?')
             return None
 
         if model == SGI or model == SPECTRAGRAPHICS:
             self.model = model
         else:
-            print 'eventio-error: dialbox model not recognized'
+            print ('eventio-error: dialbox model not recognized')
             return None
 
         # self.dial used by SGI to turn absolute into relative events
         self.dial = [0,0,0,0, 0,0,0,0]
         self.serial.flushInput()
         self.serial.flushOutput()
-        print 'sending init string'
-        self.serial.write(self.DIAL_INITIALIZE)
-        print 'init string sent'
+        print ('sending init string')
+        self.serial.write(self.DIAL_INITIALIZE.encode('latin-1'))
+        print ('init string sent')
         sleep(timeout/1000) # needed to let dial box complete self-test
         status = self.read_bytes()
-        print 'dialbox returns 0x%02x' % ord(status)
-        print 'sending dial set-auto command'
-        self.serial.write(self.DIAL_SET_AUTO)
-        print 'dial set-auto command sent'
-        print "eventio-info: dialbox: initialized."
+        print ('dialbox returns 0x%02x' % ord(status))
+        print ('sending dial set-auto command')
+        self.serial.write(self.DIAL_SET_AUTO.encode('latin-1'))
+        print ('dial set-auto command sent')
+        print ('eventio-info: dialbox: initialized.')
 
     def __del__(self):
         self.serial.close()
@@ -86,7 +85,7 @@ class dialbox:
             return None
         format = '@%dB' % n
         data = self.serial.read(n)
-        #print struct.unpack(format,data[:n])
+        #print (struct.unpack(format,data[:n]))
         return data
 
     def waitevent(self):
@@ -97,7 +96,7 @@ class dialbox:
         dial = b1 - self.DIAL_BASE
         
         if dial < 0 or dial > 7:
-            print 'dialbox: missed a few bytes'
+            print ('dialbox: missed a few bytes')
             return None
 
         if self.model == SGI:
@@ -116,7 +115,7 @@ class queue:
         self.handle = -1
         if dev:
             if not self.OpenDevice(dev):
-                raise exceptions.RuntimeError, 'eventio-error: unable to find requested device'
+                raise ('eventio-error: unable to find requested device' + exceptions.RuntimeError)
         else:
             ok = 0
             for d in range(0, 16):
@@ -124,7 +123,7 @@ class queue:
                     ok = 1
                     break
             if not ok:
-                raise exceptions.RuntimeError, 'Unable to find powermate'
+                raise ('Unable to find powermate' + exceptions.RuntimeError)
         self.poll = select.poll()
         self.poll.register(self.handle, select.POLLIN)
         self.event_queue = [] # queue used to reduce kernel/userspace context switching
@@ -165,13 +164,13 @@ class queue:
                 self.event_queue.append(struct.unpack(input_event_struct, data[0:input_event_size]))
                 data = data[input_event_size:]
             return self.event_queue.pop(0)
-        except exceptions.OSError, e: # Errno 11: Resource temporarily unavailable
+        except exceptions.OSError as e: # Errno 11: Resource temporarily unavailable
             #if e.errno == 19: # device has been disconnected
             #    report("PowerMate disconnected! Urgent!");
             return None
 
 def usage():
-    print 'usage: %s DEVICE (where EV_QUEUE is either /dev/input/event* for USB HID devices or /dev/ttyS* or /dev/ttyUSB* for serial line devices)' % (argv[0])
+    print ('usage: %s DEVICE (where EV_QUEUE is either /dev/input/event* for USB HID devices or /dev/ttyS* or /dev/ttyUSB* for serial line devices)' % (argv[0]))
     exit()
 
 if __name__ == "__main__":
@@ -181,10 +180,10 @@ if __name__ == "__main__":
     from math import *
     if len(argv) == 2:
         if re.match('^/dev/input/event\d+$', argv[1]):
-            print 'Initialized event queue: %s' % argv[1]
+            print ('Initialized event queue: %s' % argv[1])
             fifo = queue(dev=argv[1])
         elif re.match('^/dev/(ttyS\d+|ttyUSB\d+|cu\..*)$', argv[1]):
-            print 'Initialized serial line: %s' % argv[1]
+            print ('Initialized serial line: %s' % argv[1])
             fifo = dialbox(dev=argv[1], model=SGI)
         else:
             usage()
@@ -192,7 +191,7 @@ if __name__ == "__main__":
         usage()
 
     if fifo == None:
-        print 'could not open device'
+        print ('could not open device')
         usage()
 
     xy = [0.0,0.0]
@@ -203,7 +202,7 @@ if __name__ == "__main__":
         if event == None: continue
         code,value = event
 
-        print '%d => %4d' % (code,value)
+        print ('%d => %4d' % (code,value))
         continue
 
 
